@@ -170,6 +170,51 @@ public class WorldObject : MonoBehaviour {
 		currentForce.setForces(movementx, movementy, movementz, rotationx, rotationy, rotationz);
 	}
 
+	public void calculateRestrictiveFriction(){ //Second attempt
+		for (int i = 0; i < contactPoint.Length; i++) {
+			Vector svthis = getMovementVector(contactPoint[i].pos, contactPoint[i].obj1); //The speed vector for this object
+			Vector svcontact = getMovementVector(contactPoint[i].pos, contactPoint[i].obj2);
+			Vector ds = new Vector(svcontact.x - svthis.x, svcontact.y - svthis.y, svcontact.z - svthis.z) //difference in speed
+			Vector fn = new Vector(
+			
+			
+			
+		}
+	}
+
+	public static Vector getMovementVector(Location l, WorldObject obj){
+		double 	dx	= l.x - obj.massC.x,
+				dy	= l.y - obj.massC.y,
+				dz	= l.z - obj.massC.z;
+		double	tdx = dx * (2 * Mathf.PI), //Circumferense of circle perpendicular to the x axis.
+				tdy = dy * (2 * Mathf.PI),
+				tdz = dz * (2 * Mathf.PI);
+		
+		//Translational Speed
+		Location st = obj.momentum.getSpeedTranslational();
+		//Rotational Speed
+		Location sr = obj.momentum.getSpeedRotational(); //Speed in radians
+		
+		//powerx: the radius of the circle perpendicilar to the x-axis.
+		double	powerx	= pyth(dy, dz),
+				powery	= pyth(dx, dz),
+				powerz	= pyth(dx, dy);
+		//fRotxy: fraction of force caused by the y rotational power, applied to the rotation on the x axis.
+		double	fRotxy	= dz / powerx,
+				fRotxz	= dy / powerx,
+				fRotyx	= dz / powery,
+				fRotyz	= dx / powery,
+				fRotzx	= dy / powerz,
+				fRotzy	= dx / powerz;
+		//The speed the contact point is moving in a certain direction caused by the rotational motion measured in m/s
+		double	sxr = sr.z * fRotyx * tdy + sr.y * fRotzx * tdz,
+				syr = sr.z * fRotxy * tdx + sr.x * fRotzy * tdz,
+				szr = sr.y * fRotxz * tdx + sr.x * fRotyz * tdy;
+
+		return new Vector (sxr + st.x, syr + st.y, szr + st.z);
+
+	}
+
 	public void calculateRestrictiveFriction(double time){ //time is time in millisiconds, that the movement takes place.
 		for (int i = contactPoint.Length - 1; i > 0; i--) {
 			contactPoint[i].checkValidity();
@@ -180,34 +225,22 @@ public class WorldObject : MonoBehaviour {
 		//the front left corner is positive because any dx and dy values would be dx>0 and dy>0 and if encountering a block in one such position,
 		//it would cause the object to rotate positively around the y-axis. Howver, rotation in unity is negated, and thus this will be regarded
 		//as a negative rotation value.
-		double	smxp = 0,
-				smxn = 0,
-				smyp = 0,
-				smyn = 0,
-				smzp = 0,
-				smzn = 0,
-				srxp = 0,
-				srxn = 0,
-				sryp = 0,
-				sryn = 0,
-				srzp = 0,
-				srzn = 0;
 			
 		for(int i = 0; i < contactPoint.Length; i++){
 			//Distance between the center of mass and the contact point.
-			double 	dx = contactPoint[i].pos.x - massC.x,
-					dy = contactPoint[i].pos.y - massC.y,
-					dz = contactPoint[i].pos.z - massC.z;
-			double	tdx = dx / (2 * Mathf.PI), //Divide with 2Pi so sxt is converted to meters/s.
+			double 	dx	= contactPoint[i].pos.x - massC.x,
+					dy	= contactPoint[i].pos.y - massC.y,
+					dz	= contactPoint[i].pos.z - massC.z;
+			double	tdx = dx / (2 * Mathf.PI), //Divide with 2Pi so sxt is converted to meters/s instead of radians later.
 					tdy = dy / (2 * Mathf.PI),
 					tdz = dz / (2 * Mathf.PI);
 
 			//Translational Speed
 			Location st = momentum.getSpeedTranslational();
 			//Rotational Speed
-			Location sr = momentum.getSpeedRotational();
-			
-			//powerx: the radius of the circle from the x-axis.
+			Location sr = momentum.getSpeedRotational(); //Speed in radians
+
+			//powerx: the radius of the circle perpendicilar to the x-axis.
 			double	powerx	= pyth(dy, dz),
 					powery	= pyth(dx, dz),
 					powerz	= pyth(dx, dy);
@@ -219,14 +252,18 @@ public class WorldObject : MonoBehaviour {
 					fRotzx	= dy / powerz,
 					fRotzy	= dx / powerz;
 			//The speed the contact point is moving in a certain direction caused by the rotational motion measured in m/s
-			double	sxt = sr.z * fRotyx * tdy + sr.y * fRotzx * tdz,
-					syt = sr.z * fRotxy * tdx + sr.x * fRotzy * tdz,
-					szt = sr.y * fRotxz * tdx + sr.x * fRotyz * tdy;
+			double	sxr = sr.z * fRotyx * tdy + sr.y * fRotzx * tdz,
+					syr = sr.z * fRotxy * tdx + sr.x * fRotzy * tdz,
+					szr = sr.y * fRotxz * tdx + sr.x * fRotyz * tdy;
 
+			//pushDisx = the distnace that the contact point tries to travel around the x-axis
+			double	pushDisx = sxr * time / 1000, //Distance that the contact point travels rotationally 
+					pushDisy = syr * time / 1000,
+					pushDisz = szr * time / 1000;
 
-			if(dx * dy < 0){
+			//if(dx * dy < 0){
 			//	smzp += contactPoint[i].obj2.momentum.smx;
-			}
+			//}
 		}
 	}
 

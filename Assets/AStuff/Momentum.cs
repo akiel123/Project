@@ -3,7 +3,7 @@ using System.Collections;
 
 public class Momentum : MonoBehaviour {
 
-	private double	mx, //Movement momentum on the x axis
+	private double	mx, //Force of translational momentum on the x axis.
 					my,
 					mz,
 					rx, //Rotational momentum on the x axis
@@ -31,12 +31,12 @@ public class Momentum : MonoBehaviour {
 		rz += workingEnergyrz / reduction;
 	}
 
-	public Location getSpeedTranslational(){
+	public Location getSpeedTranslational(){ //Calculates the rotational speed in meters/s
 		double mass = obj.weight;
 		return new Location(WorldObject.sqrt(mx / (0.5 * mass)), WorldObject.sqrt(my / (0.5 * mass)), WorldObject.sqrt(mz / (0.5 * mass)));
 	}
 
-	public Location getSpeedRotational(){
+	public Location getSpeedRotational(){ //Calculates the rotational speed in radians
 		Location inerti = obj.inertimomentum;
 		return new Location(WorldObject.sqrt(rx / (0.5 * inerti.x)), WorldObject.sqrt(ry / (0.5 * inerti.y)), WorldObject.sqrt(rz / (0.5 * inerti.z)));
 	}
